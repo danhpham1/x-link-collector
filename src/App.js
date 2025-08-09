@@ -16,7 +16,11 @@ const XLinkExtractor = () => {
     
     // Clean and normalize URLs
     const cleanLinks = matches.map(link => {
-      let cleanLink = link.trim();
+      let cleanLink = link?.replace().trim();
+       
+      // Remove trailing punctuation that's not part of the URL
+      cleanLink = cleanLink.replace(/[)}\],.;!?]+$/, '');
+      
       if (!cleanLink.startsWith('http')) {
         cleanLink = 'https://' + cleanLink;
       }

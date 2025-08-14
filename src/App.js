@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Download, Link, Search, Trash2, Copy, User, MessageCircle, List, ExternalLink } from 'lucide-react';
+import { Download, Link, Search, Trash2, Copy, User, MessageCircle, List, ExternalLink, Code } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
 const XLinkExtractor = () => {
@@ -69,6 +69,17 @@ const XLinkExtractor = () => {
   }, [inputText]);
 
   const extractedLinks = extractedData.links;
+
+  // Derive tweet status links (those containing /status/<id>) for Postman usage
+  const tweetLinks = useMemo(() => {
+    return extractedLinks.filter(l => /\/status\/\d+/.test(l));
+  }, [extractedLinks]);
+
+  // Pretty formatted JSON array string of tweet links
+  const tweetLinksArrayString = useMemo(() => {
+    if (tweetLinks.length === 0) return '';
+    return '[\n' + tweetLinks.map(l => `  "${l}"`).join(',\n') + '\n]';
+  }, [tweetLinks]);
 
   const exportToExcel = () => {
     if (extractedLinks.length === 0) {
@@ -350,6 +361,42 @@ const XLinkExtractor = () => {
             )}
           </div>
         </div>
+
+        {/* Tweet Links JSON Array Section */}
+        {tweetLinks.length > 0 && (
+          <div className="mt-6 bg-white rounded-lg shadow-sm border">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center space-x-2">
+                  <Code className="w-5 h-5 text-gray-400" />
+                  <h2 className="text-lg font-medium text-gray-900">
+                    Tweet Links Array (Postman) ({tweetLinks.length})
+                  </h2>
+                </div>
+                <button
+                  id="copy-tweet-array-btn"
+                  onClick={() => {
+                    navigator.clipboard.writeText(tweetLinksArrayString).then(() => {
+                      const button = document.getElementById('copy-tweet-array-btn');
+                      if (!button) return;
+                      const originalText = button.textContent;
+                      button.textContent = 'Copied!';
+                      setTimeout(() => { button.textContent = originalText; }, 1000);
+                    });
+                  }}
+                  className="inline-flex items-center px-4 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                >
+                  <Copy className="w-4 h-4 mr-2" />
+                  Copy Array
+                </button>
+              </div>
+              <div className="bg-gray-900 text-gray-100 text-xs rounded-lg p-4 overflow-x-auto font-mono border border-gray-800 relative">
+                <pre className="whitespace-pre m-0">{tweetLinksArrayString}</pre>
+              </div>
+              <p className="mt-2 text-xs text-gray-500">Use this JSON array directly in Postman (e.g., as a body parameter list of tweet URLs).</p>
+            </div>
+          </div>
+        )}
 
         {/* Export Section */}
         {extractedLinks.length > 0 && (

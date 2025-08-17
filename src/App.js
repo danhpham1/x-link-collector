@@ -445,8 +445,95 @@ const XLinkExtractor = () => {
   );
 };
 
+// New page: convert multiline string to JSON array
+const StringArrayConverter = () => {
+  const [raw, setRaw] = useState('');
+  const lines = useMemo(() => {
+    if (!raw) return [];
+    return raw.replace(/\r\n?/g, '\n').split('\n').filter(l => l.trim() !== '');
+  }, [raw]);
+  const jsonArray = lines.length ? '[\n' + lines.map(l => '  ' + JSON.stringify(l)).join(',\n') + '\n]' : '';
+  return (
+    <div className="max-w-4xl mx-auto px-6 py-8">
+      <div className="bg-white rounded-lg shadow-sm border mb-6">
+        <div className="p-6">
+          <div className="flex items-center justify-between mb-4">
+            <label htmlFor="stringInput" className="block text-sm font-medium text-gray-700">Input String (mỗi dòng =&gt; 1 phần tử)</label>
+            {raw && (
+              <button onClick={() => setRaw('')} className="inline-flex items-center px-3 py-1 text-xs bg-gray-100 text-gray-600 rounded-md hover:bg-gray-200 transition-colors">Xóa</button>
+            )}
+          </div>
+          <textarea
+            id="stringInput"
+            value={raw}
+            onChange={e => setRaw(e.target.value)}
+            placeholder="Dán chuỗi nhiều dòng tại đây..."
+            className="w-full h-48 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none text-sm"
+          />
+        </div>
+      </div>
+      {lines.length > 0 && (
+        <div className="bg-white rounded-lg shadow-sm border">
+          <div className="p-6">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-lg font-medium text-gray-900">Kết quả Array ({lines.length})</h2>
+              <button
+                id="copy-lines-array"
+                onClick={() => {
+                  navigator.clipboard.writeText(jsonArray).then(() => {
+                    const btn = document.getElementById('copy-lines-array');
+                    if (!btn) return;
+                    const t = btn.textContent; btn.textContent = 'Đã copy!'; setTimeout(()=>{btn.textContent = t;},1000);
+                  });
+                }}
+                className="inline-flex items-center px-4 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+              >Copy Array</button>
+            </div>
+            <div className="bg-gray-900 text-gray-100 text-xs rounded-lg p-4 overflow-x-auto font-mono border border-gray-800">
+              <pre className="whitespace-pre m-0">{jsonArray}</pre>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 function App() {
-  return <XLinkExtractor />;
+  const [page, setPage] = useState('extract');
+  return (
+    <div className="min-h-screen flex flex-col">
+      <div className="bg-white shadow-sm border-b">
+        <div className="max-w-4xl mx-auto px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex items-center space-x-3">
+            <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
+              <Link className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-medium text-gray-900">X Tools</h1>
+              <p className="mt-0.5 text-xs text-gray-500">Extractor & Converter</p>
+            </div>
+          </div>
+          <div className="flex space-x-2">
+            <button
+              onClick={()=>setPage('extract')}
+              className={`px-4 py-2 rounded-md text-sm font-medium border transition-colors ${page==='extract' ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'}`}
+            >Extract Links</button>
+            <button
+              onClick={()=>setPage('string-array')}
+              className={`px-4 py-2 rounded-md text-sm font-medium border transition-colors ${page==='string-array' ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'}`}
+            >String -&gt; Array</button>
+          </div>
+        </div>
+      </div>
+      <div className="flex-1">
+        {page === 'extract' ? <XLinkExtractor /> : <StringArrayConverter />}
+      </div>
+      <footer className="mt-12 text-center pb-8">
+        <p className="text-xs text-gray-400">Supports both x.com and twitter.com link formats</p>
+      </footer>
+    </div>
+  );
 }
 
 export default App;

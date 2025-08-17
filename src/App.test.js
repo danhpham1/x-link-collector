@@ -3,6 +3,6 @@ import App from './App';
 
 test('renders app title', () => {
   render(<App />);
-  const heading = screen.getByText(/X Link Extractor/i);
+  const heading = screen.getByText(/X Tools/i);
   expect(heading).toBeInTheDocument();
 });

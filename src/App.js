@@ -567,6 +567,28 @@ const LinkComparison = () => {
     });
   };
 
+  const copyUniqueText1Links = () => {
+    const uniqueText1LinksText = uniqueToText1.join('\n');
+    navigator.clipboard.writeText(uniqueText1LinksText).then(() => {
+      const btn = document.getElementById('copy-unique-text1-links');
+      if (!btn) return;
+      const originalText = btn.textContent;
+      btn.textContent = 'Đã copy!';
+      setTimeout(() => { btn.textContent = originalText; }, 1000);
+    });
+  };
+
+  const copyUniqueText2Links = () => {
+    const uniqueText2LinksText = uniqueToText2.join('\n');
+    navigator.clipboard.writeText(uniqueText2LinksText).then(() => {
+      const btn = document.getElementById('copy-unique-text2-links');
+      if (!btn) return;
+      const originalText = btn.textContent;
+      btn.textContent = 'Đã copy!';
+      setTimeout(() => { btn.textContent = originalText; }, 1000);
+    });
+  };
+
   return (
     <div className="max-w-4xl mx-auto px-6 py-8">
       {/* Input Section */}
@@ -692,7 +714,17 @@ const LinkComparison = () => {
                 <div className="space-y-3">
                   {uniqueToText1.length > 0 && (
                     <div>
-                      <h3 className="text-sm font-medium text-blue-600 mb-2">Chỉ có trong Text 1 ({uniqueToText1.length})</h3>
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="text-sm font-medium text-blue-600">Chỉ có trong Text 1 ({uniqueToText1.length})</h3>
+                        <button
+                          id="copy-unique-text1-links"
+                          onClick={copyUniqueText1Links}
+                          className="inline-flex items-center px-3 py-1 text-xs bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition-colors"
+                        >
+                          <Copy className="w-3 h-3 mr-1" />
+                          Copy All
+                        </button>
+                      </div>
                       <div className="space-y-2">
                         {uniqueToText1.map((link, index) => (
                           <div key={index} className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
@@ -720,7 +752,17 @@ const LinkComparison = () => {
 
                   {uniqueToText2.length > 0 && (
                     <div>
-                      <h3 className="text-sm font-medium text-green-600 mb-2">Chỉ có trong Text 2 ({uniqueToText2.length})</h3>
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="text-sm font-medium text-green-600">Chỉ có trong Text 2 ({uniqueToText2.length})</h3>
+                        <button
+                          id="copy-unique-text2-links"
+                          onClick={copyUniqueText2Links}
+                          className="inline-flex items-center px-3 py-1 text-xs bg-green-100 text-green-700 rounded-md hover:bg-green-200 transition-colors"
+                        >
+                          <Copy className="w-3 h-3 mr-1" />
+                          Copy All
+                        </button>
+                      </div>
                       <div className="space-y-2">
                         {uniqueToText2.map((link, index) => (
                           <div key={index} className="flex items-center justify-between p-3 bg-green-50 rounded-lg">

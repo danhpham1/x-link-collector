@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Download, Link, Search, Trash2, Copy, User, MessageCircle, List, ExternalLink, Code } from 'lucide-react';
+import { Download, Link, Search, Trash2, Copy, User, MessageCircle, List, ExternalLink, Code, GitCompare } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
 const XLinkExtractor = () => {
@@ -11,7 +11,7 @@ const XLinkExtractor = () => {
     if (!inputText.trim()) return { links: [], userProfiles: {} };
     
     // Regex pattern to match various X/Twitter URL formats
-    const xLinkPattern = /(?:https?:\/\/)?(?:www\.)?(?:twitter\.com|x\.com)\/[^\s\n\r\t<>"\']*/gi;
+    const xLinkPattern = /(?:https?:\/\/)?(?:www\.)?(?:twitter\.com|x\.com)\/[^\s\n\r\t<>"']*/gi;
     const matches = inputText.match(xLinkPattern) || [];
     
     // Clean and normalize URLs
@@ -499,6 +499,267 @@ const StringArrayConverter = () => {
   );
 };
 
+// New page: compare links between two text strings
+const LinkComparison = () => {
+  const [text1, setText1] = useState('');
+  const [text2, setText2] = useState('');
+
+  // Helper function to extract and clean X links from text
+  const extractXLinks = (text) => {
+    if (!text.trim()) return [];
+    
+    const xLinkPattern = /(?:https?:\/\/)?(?:www\.)?(?:twitter\.com|x\.com)\/[^\s\n\r\t<>"']*/gi;
+    const matches = text.match(xLinkPattern) || [];
+    
+    const cleanLinks = matches.map(link => {
+      let cleanLink = link?.replace().trim();
+      cleanLink = cleanLink.replace(/[)}\],.;!?]+$/, '');
+      
+      if (!cleanLink.startsWith('http')) {
+        cleanLink = 'https://' + cleanLink;
+      }
+      cleanLink = cleanLink.replace('twitter.com', 'x.com');
+      return cleanLink;
+    });
+    
+    return [...new Set(cleanLinks)];
+  };
+
+  const links1 = useMemo(() => extractXLinks(text1), [text1]);
+  const links2 = useMemo(() => extractXLinks(text2), [text2]);
+  
+  // Find non-duplicate links (links that exist in only one of the texts)
+  const uniqueToText1 = links1.filter(link => !links2.includes(link));
+  const uniqueToText2 = links2.filter(link => !links1.includes(link));
+  const commonLinks = links1.filter(link => links2.includes(link));
+  const allUniqueLinks = [...uniqueToText1, ...uniqueToText2];
+
+  const copyUniqueLinks = () => {
+    const uniqueLinksText = allUniqueLinks.join('\n');
+    navigator.clipboard.writeText(uniqueLinksText).then(() => {
+      const btn = document.getElementById('copy-unique-links');
+      if (!btn) return;
+      const originalText = btn.textContent;
+      btn.textContent = 'Đã copy!';
+      setTimeout(() => { btn.textContent = originalText; }, 1000);
+    });
+  };
+
+  return (
+    <div className="max-w-4xl mx-auto px-6 py-8">
+      {/* Input Section */}
+      <div className="grid md:grid-cols-2 gap-6 mb-6">
+        <div className="bg-white rounded-lg shadow-sm border">
+          <div className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <label htmlFor="text1" className="block text-sm font-medium text-gray-700">Text 1</label>
+              {text1 && (
+                <button onClick={() => setText1('')} className="inline-flex items-center px-3 py-1 text-xs bg-gray-100 text-gray-600 rounded-md hover:bg-gray-200 transition-colors">
+                  <Trash2 className="w-3 h-3 mr-1" />
+                  Xóa
+                </button>
+              )}
+            </div>
+            <textarea
+              id="text1"
+              value={text1}
+              onChange={(e) => setText1(e.target.value)}
+              placeholder="Dán text 1 có chứa X links..."
+              className="w-full h-40 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none text-sm"
+            />
+            <div className="mt-2 text-xs text-gray-500">
+              Tìm thấy: {links1.length} links
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-lg shadow-sm border">
+          <div className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <label htmlFor="text2" className="block text-sm font-medium text-gray-700">Text 2</label>
+              {text2 && (
+                <button onClick={() => setText2('')} className="inline-flex items-center px-3 py-1 text-xs bg-gray-100 text-gray-600 rounded-md hover:bg-gray-200 transition-colors">
+                  <Trash2 className="w-3 h-3 mr-1" />
+                  Xóa
+                </button>
+              )}
+            </div>
+            <textarea
+              id="text2"
+              value={text2}
+              onChange={(e) => setText2(e.target.value)}
+              placeholder="Dán text 2 có chứa X links..."
+              className="w-full h-40 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none text-sm"
+            />
+            <div className="mt-2 text-xs text-gray-500">
+              Tìm thấy: {links2.length} links
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Results Section */}
+      {(links1.length > 0 || links2.length > 0) && (
+        <div className="space-y-6">
+          {/* Summary Stats */}
+          <div className="bg-white rounded-lg shadow-sm border">
+            <div className="p-6">
+              <h2 className="text-lg font-medium text-gray-900 mb-4">Thống kê so sánh</h2>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="text-center p-4 bg-blue-50 rounded-lg">
+                  <div className="text-2xl font-bold text-blue-600">{links1.length}</div>
+                  <div className="text-sm text-gray-600">Links Text 1</div>
+                </div>
+                <div className="text-center p-4 bg-green-50 rounded-lg">
+                  <div className="text-2xl font-bold text-green-600">{links2.length}</div>
+                  <div className="text-sm text-gray-600">Links Text 2</div>
+                </div>
+                <div className="text-center p-4 bg-purple-50 rounded-lg">
+                  <div className="text-2xl font-bold text-purple-600">{commonLinks.length}</div>
+                  <div className="text-sm text-gray-600">Links trùng</div>
+                </div>
+                <div className="text-center p-4 bg-orange-50 rounded-lg">
+                  <div className="text-2xl font-bold text-orange-600">{allUniqueLinks.length}</div>
+                  <div className="text-sm text-gray-600">Links không trùng</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Non-duplicate Links */}
+          {allUniqueLinks.length > 0 && (
+            <div className="bg-white rounded-lg shadow-sm border">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center space-x-2">
+                    <GitCompare className="w-5 h-5 text-gray-400" />
+                    <h2 className="text-lg font-medium text-gray-900">
+                      Links không trùng ({allUniqueLinks.length})
+                    </h2>
+                  </div>
+                  <button
+                    id="copy-unique-links"
+                    onClick={copyUniqueLinks}
+                    className="inline-flex items-center px-4 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                  >
+                    <Copy className="w-4 h-4 mr-2" />
+                    Copy All
+                  </button>
+                </div>
+
+                <div className="space-y-3">
+                  {uniqueToText1.length > 0 && (
+                    <div>
+                      <h3 className="text-sm font-medium text-blue-600 mb-2">Chỉ có trong Text 1 ({uniqueToText1.length})</h3>
+                      <div className="space-y-2">
+                        {uniqueToText1.map((link, index) => (
+                          <div key={index} className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                            <a
+                              href={link}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:text-blue-800 text-sm font-medium truncate flex-1 mr-2"
+                              title={link}
+                            >
+                              {link}
+                            </a>
+                            <button
+                              onClick={() => navigator.clipboard.writeText(link)}
+                              className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
+                              title="Copy link"
+                            >
+                              <Copy className="w-3 h-3" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {uniqueToText2.length > 0 && (
+                    <div>
+                      <h3 className="text-sm font-medium text-green-600 mb-2">Chỉ có trong Text 2 ({uniqueToText2.length})</h3>
+                      <div className="space-y-2">
+                        {uniqueToText2.map((link, index) => (
+                          <div key={index} className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                            <a
+                              href={link}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-green-600 hover:text-green-800 text-sm font-medium truncate flex-1 mr-2"
+                              title={link}
+                            >
+                              {link}
+                            </a>
+                            <button
+                              onClick={() => navigator.clipboard.writeText(link)}
+                              className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
+                              title="Copy link"
+                            >
+                              <Copy className="w-3 h-3" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Common Links */}
+          {commonLinks.length > 0 && (
+            <div className="bg-white rounded-lg shadow-sm border">
+              <div className="p-6">
+                <div className="flex items-center space-x-2 mb-4">
+                  <User className="w-5 h-5 text-gray-400" />
+                  <h2 className="text-lg font-medium text-gray-900">
+                    Links trùng nhau ({commonLinks.length})
+                  </h2>
+                </div>
+                <div className="space-y-2">
+                  {commonLinks.map((link, index) => (
+                    <div key={index} className="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
+                      <a
+                        href={link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-purple-600 hover:text-purple-800 text-sm font-medium truncate flex-1 mr-2"
+                        title={link}
+                      >
+                        {link}
+                      </a>
+                      <button
+                        onClick={() => navigator.clipboard.writeText(link)}
+                        className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
+                        title="Copy link"
+                      >
+                        <Copy className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {(links1.length === 0 && links2.length === 0) && (
+        <div className="text-center py-12">
+          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <GitCompare className="w-8 h-8 text-gray-400" />
+          </div>
+          <p className="text-gray-500 text-sm">
+            Nhập text vào cả hai ô để so sánh X links
+          </p>
+        </div>
+      )}
+    </div>
+  );
+};
+
 function App() {
   const [page, setPage] = useState('extract');
   return (
@@ -523,11 +784,17 @@ function App() {
               onClick={()=>setPage('string-array')}
               className={`px-4 py-2 rounded-md text-sm font-medium border transition-colors ${page==='string-array' ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'}`}
             >String -&gt; Array</button>
+            <button
+              onClick={()=>setPage('compare')}
+              className={`px-4 py-2 rounded-md text-sm font-medium border transition-colors ${page==='compare' ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'}`}
+            >Compare Links</button>
           </div>
         </div>
       </div>
       <div className="flex-1">
-        {page === 'extract' ? <XLinkExtractor /> : <StringArrayConverter />}
+        {page === 'extract' ? <XLinkExtractor /> : 
+         page === 'string-array' ? <StringArrayConverter /> : 
+         page === 'compare' ? <LinkComparison /> : <XLinkExtractor />}
       </div>
       <footer className="mt-12 text-center pb-8">
         <p className="text-xs text-gray-400">Supports both x.com and twitter.com link formats</p>

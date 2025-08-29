@@ -545,6 +545,28 @@ const LinkComparison = () => {
     });
   };
 
+  const copyText1Links = () => {
+    const text1LinksText = links1.join('\n');
+    navigator.clipboard.writeText(text1LinksText).then(() => {
+      const btn = document.getElementById('copy-text1-links');
+      if (!btn) return;
+      const originalText = btn.textContent;
+      btn.textContent = 'Đã copy!';
+      setTimeout(() => { btn.textContent = originalText; }, 1000);
+    });
+  };
+
+  const copyText2Links = () => {
+    const text2LinksText = links2.join('\n');
+    navigator.clipboard.writeText(text2LinksText).then(() => {
+      const btn = document.getElementById('copy-text2-links');
+      if (!btn) return;
+      const originalText = btn.textContent;
+      btn.textContent = 'Đã copy!';
+      setTimeout(() => { btn.textContent = originalText; }, 1000);
+    });
+  };
+
   return (
     <div className="max-w-4xl mx-auto px-6 py-8">
       {/* Input Section */}
@@ -570,6 +592,16 @@ const LinkComparison = () => {
             <div className="mt-2 text-xs text-gray-500">
               Tìm thấy: {links1.length} links
             </div>
+            {links1.length > 0 && (
+              <button
+                id="copy-text1-links"
+                onClick={copyText1Links}
+                className="mt-2 inline-flex items-center px-3 py-1 text-xs bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition-colors"
+              >
+                <Copy className="w-3 h-3 mr-1" />
+                Copy All Text 1 Links
+              </button>
+            )}
           </div>
         </div>
 
@@ -594,6 +626,16 @@ const LinkComparison = () => {
             <div className="mt-2 text-xs text-gray-500">
               Tìm thấy: {links2.length} links
             </div>
+            {links2.length > 0 && (
+              <button
+                id="copy-text2-links"
+                onClick={copyText2Links}
+                className="mt-2 inline-flex items-center px-3 py-1 text-xs bg-green-100 text-green-700 rounded-md hover:bg-green-200 transition-colors"
+              >
+                <Copy className="w-3 h-3 mr-1" />
+                Copy All Text 2 Links
+              </button>
+            )}
           </div>
         </div>
       </div>

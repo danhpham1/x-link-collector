@@ -14,19 +14,27 @@ const XLinkExtractor = () => {
     const xLinkPattern = /(?:https?:\/\/)?(?:www\.)?(?:twitter\.com|x\.com)\/[^\s\n\r\t<>"']*/gi;
     const matches = inputText.match(xLinkPattern) || [];
     
-    // Clean and normalize URLs
+    // Clean and normalize URLs (strip query params and fragments)
     const cleanLinks = matches.map(link => {
       let cleanLink = link?.replace().trim();
-       
+
       // Remove trailing punctuation that's not part of the URL
       cleanLink = cleanLink.replace(/[)}\],.;!?]+$/, '');
-      
+
       if (!cleanLink.startsWith('http')) {
         cleanLink = 'https://' + cleanLink;
       }
       // Convert twitter.com to x.com for consistency
       cleanLink = cleanLink.replace('twitter.com', 'x.com');
-      return cleanLink;
+
+      try {
+        const u = new URL(cleanLink);
+        // Rebuild without search (query) and hash (fragment)
+        return `${u.origin}${u.pathname}`;
+      } catch (err) {
+        // Fallback to the cleaned string if URL parsing fails
+        return cleanLink;
+      }
     });
     
     // Remove duplicates
@@ -514,12 +522,18 @@ const LinkComparison = () => {
     const cleanLinks = matches.map(link => {
       let cleanLink = link?.replace().trim();
       cleanLink = cleanLink.replace(/[)}\],.;!?]+$/, '');
-      
+
       if (!cleanLink.startsWith('http')) {
         cleanLink = 'https://' + cleanLink;
       }
       cleanLink = cleanLink.replace('twitter.com', 'x.com');
-      return cleanLink;
+
+      try {
+        const u = new URL(cleanLink);
+        return `${u.origin}${u.pathname}`;
+      } catch (err) {
+        return cleanLink;
+      }
     });
     
     return [...new Set(cleanLinks)];

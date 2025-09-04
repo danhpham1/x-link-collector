@@ -166,6 +166,26 @@ const XLinkExtractor = () => {
     setInputText('');
   };
 
+  const shuffleArray = (array) => {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+  }
+
+  const copyAllLinks = () => {
+    shuffleArray(extractedLinks);
+    const linksText = extractedLinks.join('\n');
+    navigator.clipboard.writeText(linksText).then(() => {
+      const button = document.getElementById('copy-btn');
+      const originalText = button.textContent;
+      button.textContent = 'Copied!';
+      setTimeout(() => {
+        button.textContent = originalText;
+      }, 1000);
+    });
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -306,17 +326,7 @@ const XLinkExtractor = () => {
                 <div className="flex items-center space-x-3">
                   <button
                     id="copy-btn"
-                    onClick={() => {
-                      const linksText = extractedLinks.join('\n');
-                      navigator.clipboard.writeText(linksText).then(() => {
-                        const button = document.getElementById('copy-btn');
-                        const originalText = button.textContent;
-                        button.textContent = 'Copied!';
-                        setTimeout(() => {
-                          button.textContent = originalText;
-                        }, 1000);
-                      });
-                    }}
+                    onClick={copyAllLinks}
                     className="inline-flex items-center px-4 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
                   >
                     <Copy className="w-4 h-4 mr-2" />
@@ -539,6 +549,14 @@ const LinkComparison = () => {
     return [...new Set(cleanLinks)];
   };
 
+  // Random function
+  const shuffleArray = (array) => {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+  }
+
   const links1 = useMemo(() => extractXLinks(text1), [text1]);
   const links2 = useMemo(() => extractXLinks(text2), [text2]);
   
@@ -549,6 +567,9 @@ const LinkComparison = () => {
   const allUniqueLinks = [...uniqueToText1, ...uniqueToText2];
 
   const copyUniqueLinks = () => {
+    // Randomly shuffle the unique links before copying
+    shuffleArray(allUniqueLinks);
+
     const uniqueLinksText = allUniqueLinks.join('\n');
     navigator.clipboard.writeText(uniqueLinksText).then(() => {
       const btn = document.getElementById('copy-unique-links');
@@ -560,6 +581,9 @@ const LinkComparison = () => {
   };
 
   const copyText1Links = () => {
+    // Randomly shuffle the unique links before copying
+    shuffleArray(links1);
+
     const text1LinksText = links1.join('\n');
     navigator.clipboard.writeText(text1LinksText).then(() => {
       const btn = document.getElementById('copy-text1-links');
@@ -571,6 +595,9 @@ const LinkComparison = () => {
   };
 
   const copyText2Links = () => {
+    // Randomly shuffle the unique links before copying
+    shuffleArray(links2);
+
     const text2LinksText = links2.join('\n');
     navigator.clipboard.writeText(text2LinksText).then(() => {
       const btn = document.getElementById('copy-text2-links');
@@ -582,6 +609,9 @@ const LinkComparison = () => {
   };
 
   const copyUniqueText1Links = () => {
+    // Randomly shuffle the unique links before copying
+    shuffleArray(uniqueToText1);
+
     const uniqueText1LinksText = uniqueToText1.join('\n');
     navigator.clipboard.writeText(uniqueText1LinksText).then(() => {
       const btn = document.getElementById('copy-unique-text1-links');
@@ -593,6 +623,9 @@ const LinkComparison = () => {
   };
 
   const copyUniqueText2Links = () => {
+    // Randomly shuffle the unique links before copying
+    shuffleArray(uniqueToText2);
+
     const uniqueText2LinksText = uniqueToText2.join('\n');
     navigator.clipboard.writeText(uniqueText2LinksText).then(() => {
       const btn = document.getElementById('copy-unique-text2-links');

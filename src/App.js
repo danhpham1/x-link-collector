@@ -30,7 +30,7 @@ const XLinkExtractor = () => {
       try {
         const u = new URL(cleanLink);
         // Rebuild without search (query) and hash (fragment)
-        return `${u.origin}${u.pathname}`;
+        return `${u.origin}${u.pathname}`
       } catch (err) {
         // Fallback to the cleaned string if URL parsing fails
         return cleanLink;
